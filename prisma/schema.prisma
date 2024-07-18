@@ -1,0 +1,93 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Users {
+  id          String   @id @default(uuid())
+  name        String
+  email       String
+  departament String
+  password    String
+  createdAt   DateTime @default(now())
+
+  permissions Permissions[]
+  taskFiles   TaskFiles[]
+
+  notificationsSent     Notifications[] @relation("sender")
+  notificationsReceived Notifications[] @relation("recipient")
+  Tasks Tasks[]
+
+  @@map("user")
+}
+
+model Permissions {
+  id        String   @id @default(uuid())
+  name      String
+  user_id   String
+  createdAt DateTime @default(now())
+
+  user      Users?   @relation(fields: [user_id], references: [id])
+
+  @@map("permission")
+}
+
+model Tasks {
+  id        String   @id @default(uuid())
+  title     String
+  status    TaskStatus
+  priority  String
+  type      String
+  startDate DateTime
+  endDate   DateTime
+  user_id String
+  createdAt DateTime @default(now())
+
+  user Users? @relation(fields: [user_id], references: [id])
+
+  taskFiles TaskFiles[]
+
+  @@map("task")
+}
+
+model TaskFiles {
+  id   String @id @default(uuid())
+  file String
+
+  user_id   String
+  task      Tasks?   @relation(fields: [task_id], references: [id])
+  task_id   String
+  createdAt DateTime @default(now())
+
+  Users Users[]
+
+  @@map("taskFile")
+}
+
+model Notifications {
+  id          String   @id @default(uuid())
+  title       String
+  content     String
+  recipientId String
+  senderId    String
+  is_read     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  sender    Users @relation("sender", fields: [senderId], references: [id])
+  recipient Users @relation("recipient", fields: [recipientId], references: [id])
+
+  @@map("notification")
+}
+
+enum TaskStatus {
+  ACCEPTED
+  REJEITED
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELED
+}
