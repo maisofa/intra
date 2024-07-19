@@ -1,3 +1,6 @@
+-- CreateEnum
+CREATE TYPE "TaskStatus" AS ENUM ('ACCEPTED', 'REJEITED', 'PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELED');
+
 -- CreateTable
 CREATE TABLE "user" (
     "id" TEXT NOT NULL,
@@ -24,11 +27,12 @@ CREATE TABLE "permission" (
 CREATE TABLE "task" (
     "id" TEXT NOT NULL,
     "title" TEXT NOT NULL,
-    "status" TEXT NOT NULL,
+    "status" "TaskStatus" NOT NULL,
     "priority" TEXT NOT NULL,
     "type" TEXT NOT NULL,
     "startDate" TIMESTAMP(3) NOT NULL,
     "endDate" TIMESTAMP(3) NOT NULL,
+    "user_id" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "task_pkey" PRIMARY KEY ("id")
@@ -65,6 +69,9 @@ CREATE TABLE "_TaskFilesToUsers" (
 );
 
 -- CreateIndex
+CREATE UNIQUE INDEX "user_email_key" ON "user"("email");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "_TaskFilesToUsers_AB_unique" ON "_TaskFilesToUsers"("A", "B");
 
 -- CreateIndex
@@ -72,6 +79,9 @@ CREATE INDEX "_TaskFilesToUsers_B_index" ON "_TaskFilesToUsers"("B");
 
 -- AddForeignKey
 ALTER TABLE "permission" ADD CONSTRAINT "permission_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "task" ADD CONSTRAINT "task_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "taskFile" ADD CONSTRAINT "taskFile_task_id_fkey" FOREIGN KEY ("task_id") REFERENCES "task"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

@@ -1,11 +1,30 @@
 import { Injectable } from '@nestjs/common';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
+import { UsersService } from 'src/users/users.service';
+import { RegisterUserDto } from 'src/users/dto/register-user.dto';
+import { UserAlreadyExistsError } from './errors/user-already-exists.error';
+
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
-  create(createAuthDto: CreateAuthDto) {
-    return 'This action adds a new auth';
+  constructor(
+    private userService: UsersService
+  ) {}
+
+  async register(registerAuthDto: RegisterUserDto) {
+    const user = await this.userService.findByEmail(registerAuthDto.email);
+
+    if(user) {
+      throw new UserAlreadyExistsError();
+    }
+
+    registerAuthDto.password = await this.hashPassword(registerAuthDto.password);
+    return await this.userService.create(registerAuthDto);
+  }
+
+  private async hashPassword(rawPass: string) {
+    const hash = await bcrypt.hash(rawPass, 10);
+    return hash;
   }
 
   findAll() {
@@ -14,10 +33,6 @@ export class AuthService {
 
   findOne(id: number) {
     return `This action returns a #${id} auth`;
-  }
-
-  update(id: number, updateAuthDto: UpdateAuthDto) {
-    return `This action updates a #${id} auth`;
   }
 
   remove(id: number) {

@@ -8,10 +8,12 @@ import { PermissionsModule } from './permissions/permissions.module';
 import { TaskfilesModule } from './taskfiles/taskfiles.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { AuthModule } from './auth/auth.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
-  imports: [UsersModule, TasksModule, PermissionsModule, TaskfilesModule, NotificationsModule, AuthModule],
+  imports: [EventEmitterModule.forRoot(), UsersModule, TasksModule, PermissionsModule, TaskfilesModule, NotificationsModule, AuthModule, PrismaModule],
   controllers: [AppController],
-  providers: [AppService, PrismaService],
+  providers: [AppService],
 })
 export class AppModule {}

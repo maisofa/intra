@@ -1,24 +1,38 @@
-import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { UpdateNotificationDto } from './dto/update-notification.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { TaskCreatedEvent } from 'src/tasks/tasks.event';
 
 @Injectable()
-export class NotificationsService implements OnModuleDestroy, OnModuleInit {
+export class NotificationsService {
   constructor(
-    private prismaService: PrismaService,
-    private eventEmitter: EventEmitter2
+    private prismaService: PrismaService
   ) {}
 
-  onModuleInit() {
-    this.eventEmitter.on(TaskCreatedEvent, async (ev: TaskCreatedEvent) => {
-      
-    })    
+  clientToUser = {};
+
+  identify(name: string, clientId: string) {
+    this.clientToUser[clientId] = name;
+
+    return Object.values(this.clientToUser);
   }
-  create(createNotificationDto: CreateNotificationDto) {
-    return 'This action adds a new notification';
+
+  getClientName(clientId: string) {
+    return this.clientToUser[clientId];
+  }
+
+  async create(createNotificationDto: CreateNotificationDto) {
+    const notification = await this.prismaService.notifications.create({
+      data: {
+        title: createNotificationDto.title,
+        content: createNotificationDto.content,
+        recipientId: createNotificationDto.recipientId,
+        senderId: createNotificationDto.senderId,
+        is_read: createNotificationDto.is_read
+      }
+    });
+
+    return notification;
   }
 
   findAll() {

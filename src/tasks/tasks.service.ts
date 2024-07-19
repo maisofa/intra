@@ -21,7 +21,8 @@ export class TasksService {
         priority: createTaskDto.priority,
         type: createTaskDto.type,
         startDate: createTaskDto.startDate,
-        endDate: createTaskDto.endDate
+        endDate: createTaskDto.endDate,
+        user_id: createTaskDto.userId
       }
     });
 
