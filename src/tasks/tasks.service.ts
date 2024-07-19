@@ -4,6 +4,7 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Task } from './entities/task.entity';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { TaskCreatedEvent } from './tasks.event';
 
 @Injectable()
 export class TasksService {
@@ -24,9 +25,30 @@ export class TasksService {
       }
     });
 
+    const taskCreateEvent = new TaskCreatedEvent();
+    taskCreateEvent.title = task.title;
+    taskCreateEvent.priority = task.priority;
+    taskCreateEvent.type = task.type;
+    taskCreateEvent.startDate = task.startDate;
+    taskCreateEvent.endDate = task.endDate;
+
+    this.eventEmitter.emit('task.created', taskCreateEvent);
+
     return task;
   }
 
+  async requestTaskToUser(createTaskDto: CreateTaskDto) {
+
+  }
+
+  async acceptTask() {
+
+  }
+
+  async denyTask() {
+
+  }
+ 
   async findAll(): Promise<Task[]> {
     return await this.prismaService.tasks.findMany();
   }

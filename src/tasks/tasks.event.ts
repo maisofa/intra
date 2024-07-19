@@ -1,7 +1,7 @@
-export class TaskCreated {
+export class TaskCreatedEvent {
     title: string
     priority: string
     type: string
-    startDate: string
-    endDate: string
+    startDate: Date
+    endDate: Date
 }
