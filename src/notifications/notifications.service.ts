@@ -2,11 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { UpdateNotificationDto } from './dto/update-notification.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class NotificationsService {
   constructor(
-    private prismaService: PrismaService
+    private prismaService: PrismaService,
+    private eventEmitter: EventEmitter2,
   ) {}
 
   clientToUser = {};
@@ -32,11 +34,13 @@ export class NotificationsService {
       }
     });
 
+    this.eventEmitter.emit('notification.created', notification);
+
     return notification;
   }
 
   findAll() {
-    return `This action returns all notifications`;
+    return this.prismaService.notifications.findMany();
   }
 
   findOne(id: number) {

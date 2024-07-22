@@ -10,9 +10,10 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { AuthModule } from './auth/auth.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { PrismaModule } from './prisma/prisma.module';
+import { EventsModule } from './events/events.module';
 
 @Module({
-  imports: [EventEmitterModule.forRoot(), UsersModule, TasksModule, PermissionsModule, TaskfilesModule, NotificationsModule, AuthModule, PrismaModule],
+  imports: [EventEmitterModule.forRoot(), UsersModule, TasksModule, PermissionsModule, TaskfilesModule, NotificationsModule, AuthModule, PrismaModule, EventsModule],
   controllers: [AppController],
   providers: [AppService],
 })
