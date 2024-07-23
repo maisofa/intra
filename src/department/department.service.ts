@@ -10,15 +10,25 @@ export class DepartmentService {
   ) {}
 
   create(createDepartmentDto: CreateDepartmentDto) {
-    return 'This action adds a new department';
+    const department = this.prismaService.departaments.create({
+      data: {
+        name: createDepartmentDto.name
+      }
+    });
+
+    return department;
   }
 
   findAll() {
-    return `This action returns all department`;
+    return this.prismaService.departaments.findMany();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} department`;
+  findOne(id: string) {
+    return this.prismaService.departaments.findUnique({
+      where: {
+        id  
+      }
+    });
   }
 
   update(id: number, updateDepartmentDto: UpdateDepartmentDto) {

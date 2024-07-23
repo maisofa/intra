@@ -19,7 +19,7 @@ export class DepartmentController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.departmentService.findOne(+id);
+    return this.departmentService.findOne(id);
   }
 
   @Patch(':id')
