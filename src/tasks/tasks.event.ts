@@ -4,4 +4,5 @@ export class TaskCreatedEvent {
     type: string
     startDate: Date
     endDate: Date
+    userId: string
 }

@@ -2,5 +2,5 @@ export class RegisterUserDto {
     name: string
     email: string
     password: string
-    departament: string
+    departament_id: string
 }

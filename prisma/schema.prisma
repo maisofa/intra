@@ -8,19 +8,20 @@ datasource db {
 }
 
 model Users {
-  id          String   @id @default(uuid())
-  name        String
-  email       String   @unique
-  departament String
-  password    String
-  createdAt   DateTime @default(now())
+  id             String   @id @default(uuid())
+  name           String
+  email          String   @unique
+  departament_id String
+  password       String
+  createdAt      DateTime @default(now())
 
-  permissions Permissions[]
-  taskFiles   TaskFiles[]
-
+  permissions           Permissions[]
+  taskFiles             TaskFiles[]
+  departaments          Departaments    @relation(fields: [departament_id], references: [id])
   notificationsSent     Notifications[] @relation("sender")
   notificationsReceived Notifications[] @relation("recipient")
-  Tasks Tasks[]
+  Tasks                 Tasks[]
+  UserTasks             UserTasks[]
 
   @@map("user")
 }
@@ -31,27 +32,28 @@ model Permissions {
   user_id   String
   createdAt DateTime @default(now())
 
-  user      Users?   @relation(fields: [user_id], references: [id])
+  user Users? @relation(fields: [user_id], references: [id])
 
   @@map("permission")
 }
 
 model Tasks {
-  id        String   @id @default(uuid())
+  id        String     @id @default(uuid())
   title     String
   status    TaskStatus
   priority  String
   type      String
   startDate DateTime
   endDate   DateTime
-  user_id String
-  createdAt DateTime @default(now())
+  user_id   String
+  createdAt DateTime   @default(now())
 
   user Users? @relation(fields: [user_id], references: [id])
-
+  UserTasks UserTasks[]
   taskFiles TaskFiles[]
 
   @@map("task")
+
 }
 
 model TaskFiles {
@@ -66,6 +68,28 @@ model TaskFiles {
   Users Users[]
 
   @@map("taskFile")
+}
+
+model Departaments {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+
+  users Users[]
+
+  @@map("departament")
+}
+
+model UserTasks {
+  id        String   @id @default(uuid())
+  user_id   String
+  task_id   String
+  createdAt DateTime @default(now())
+
+  user Users @relation(fields: [user_id], references: [id])
+  task Tasks @relation(fields: [task_id], references: [id])
+
+  @@map("userTask")
 }
 
 model Notifications {
