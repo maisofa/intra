@@ -17,7 +17,10 @@ export class UsersService {
         departament_id: registerUserDto.departament_id
       }
     });
-    return user;
+    return {
+      ...user,
+      password: undefined
+    };
   }
 
   findAll() {
