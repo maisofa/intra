@@ -20,7 +20,8 @@ model Users {
   departaments          Departaments    @relation(fields: [departament_id], references: [id])
   notificationsSent     Notifications[] @relation("sender")
   notificationsReceived Notifications[] @relation("recipient")
-  Tasks                 Tasks[]
+  senderTasks Tasks[] @relation("sender")
+  receiverTasks Tasks[] @relation("recipient")
   UserTasks             UserTasks[]
 
   @@map("user")
@@ -41,19 +42,20 @@ model Tasks {
   id        String     @id @default(uuid())
   title     String
   status    TaskStatus
-  priority  String
+  priority  TaskPriority
   type      String
   startDate DateTime
   endDate   DateTime
-  user_id   String
+  senderId   String
+  recipientId   String?
   createdAt DateTime   @default(now())
 
-  user Users? @relation(fields: [user_id], references: [id])
+  sender    Users @relation("sender", fields: [senderId], references: [id])
+  recipient Users? @relation("recipient", fields: [recipientId], references: [id])
   UserTasks UserTasks[]
   taskFiles TaskFiles[]
 
   @@map("task")
-
 }
 
 model TaskFiles {
@@ -114,4 +116,10 @@ enum TaskStatus {
   IN_PROGRESS
   COMPLETED
   CANCELED
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
 }

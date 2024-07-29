@@ -2,8 +2,9 @@ import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { UpdateNotificationDto } from './dto/update-notification.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { TaskCreatedEvent } from 'src/tasks/tasks.event';
+import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
+import { RequestTaskCreatedEvent, TaskCreatedEvent } from 'src/tasks/tasks.event';
+import { NotificationsReadEvent } from './notifications.event';
 
 @Injectable()
 export class NotificationsService implements OnModuleDestroy, OnModuleInit {
@@ -48,17 +49,47 @@ export class NotificationsService implements OnModuleDestroy, OnModuleInit {
       await this.create(createNotificationDto);
     });
 
-    this.eventEmitter.on('task.requested', async (event: TaskCreatedEvent) => {
+    this.eventEmitter.on('task.requested', async (event: RequestTaskCreatedEvent) => {
       const createNotificationDto = new CreateNotificationDto();
       createNotificationDto.title = event.title;
       createNotificationDto.content = `A tarefa "${event.title}" foi solicitada.`;
-      createNotificationDto.recipientId = '1';  // Altere conforme necessário
-      createNotificationDto.senderId = '1';  // Ou o ID do usuário que solicitou a tarefa
+      createNotificationDto.recipientId = event.recipientId; 
+      createNotificationDto.senderId = event.recipientId; 
       createNotificationDto.is_read = false;
 
       await this.create(createNotificationDto);
     });
   }
+
+  async getUnreadNotificationsCount(userId: string): Promise<number> {
+    return this.prismaService.notifications.count({
+      where: {
+        recipientId: userId,
+        is_read: false
+      }
+    });
+  }
+
+  @OnEvent('notification.read', { async: true })
+  handleNotificationRead(payload: NotificationsReadEvent) {
+    const { notifIds } = payload;
+
+    this.markNotificationsAsRead(notifIds);
+  }
+
+  async markNotificationsAsRead(notifIds: string[]) {
+    await this.prismaService.notifications.updateMany({
+      where: {
+        id: {
+          in: notifIds
+        }
+      },
+      data: {
+        is_read: true
+      }
+    });
+  }
+
   /*async createTaskForUser(createTaskDto: CreateTaskDto, recipientId: string) {
     const task = await this.prismaService.tasks.create({
       data: {
@@ -113,8 +144,6 @@ export class NotificationsService implements OnModuleDestroy, OnModuleInit {
         is_read: createNotificationDto.is_read
       }
     });
-
-    this.eventEmitter.emit('notification.created', notification);
 
     return notification;
   }

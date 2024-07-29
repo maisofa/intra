@@ -4,7 +4,6 @@ import { Server, Socket } from 'socket.io';
 import { CreateNotificationDto } from 'src/notifications/dto/create-notification.dto';
 import { NotificationsService } from 'src/notifications/notifications.service';
 
-
 @WebSocketGateway({cors: true})
 export class EventsGateway {
   @WebSocketServer()

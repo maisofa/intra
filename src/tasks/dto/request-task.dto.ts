@@ -1,7 +1,7 @@
 import { TaskPriority, TaskStatus } from "@prisma/client"
 import { IsNotEmpty, IsString } from "class-validator";
 
-export class CreateTaskDto {
+export class RequestTaskDto {
     @IsString()
     @IsNotEmpty()
     title: string;
@@ -22,5 +22,8 @@ export class CreateTaskDto {
     endDate: Date;
     @IsString()
     @IsNotEmpty()
-    userId: string;
+    senderId: string;
+    @IsString()
+    @IsNotEmpty()
+    recipientId: string;
 }

@@ -4,8 +4,8 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Task } from './entities/task.entity';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { TaskCreatedEvent } from './tasks.event';
-import { NotificationsService } from 'src/notifications/notifications.service';
+import { RequestTaskCreatedEvent, TaskCreatedEvent } from './tasks.event';
+import { RequestTaskDto } from './dto/request-task.dto';
 
 @Injectable()
 export class TasksService {
@@ -23,7 +23,7 @@ export class TasksService {
         type: createTaskDto.type,
         startDate: createTaskDto.startDate,
         endDate: createTaskDto.endDate,
-        user_id: createTaskDto.userId,
+        senderId: createTaskDto.userId,
       },
     });
 
@@ -33,34 +33,37 @@ export class TasksService {
     taskCreateEvent.type = task.type;
     taskCreateEvent.startDate = task.startDate;
     taskCreateEvent.endDate = task.endDate;
-    taskCreateEvent.userId = task.user_id;
+    taskCreateEvent.userId = task.senderId;
 
     this.eventEmitter.emit('task.created', taskCreateEvent);
 
     return task;
   }
 
-  async requestTaskToUser(createTaskDto: CreateTaskDto) {
+  async requestTaskToUser(requestTaskDto: RequestTaskDto) {
     const task = await this.prismaService.tasks.create({
       data: {
-        title: createTaskDto.title,
-        status: createTaskDto.status,
-        priority: createTaskDto.priority,
-        type: createTaskDto.type,
-        startDate: createTaskDto.startDate,
-        endDate: createTaskDto.endDate,
-        user_id: createTaskDto.userId,
+        title: requestTaskDto.title,
+        status: requestTaskDto.status,
+        priority: requestTaskDto.priority,
+        type: requestTaskDto.type,
+        startDate: requestTaskDto.startDate,
+        endDate: requestTaskDto.endDate,
+        senderId: requestTaskDto.senderId,
+        recipientId: requestTaskDto.recipientId,
       },
     });
 
-    const taskCreateEvent = new TaskCreatedEvent();
+    const taskCreateEvent = new RequestTaskCreatedEvent();
     taskCreateEvent.title = task.title;
     taskCreateEvent.priority = task.priority;
     taskCreateEvent.type = task.type;
     taskCreateEvent.startDate = task.startDate;
     taskCreateEvent.endDate = task.endDate;
+    taskCreateEvent.senderId = task.senderId;
+    taskCreateEvent.recipientId = task.recipientId;
 
-    this.eventEmitter.emit('task.created', taskCreateEvent);
+    this.eventEmitter.emit('task.requested', taskCreateEvent);
 
     return task;
   }
@@ -73,7 +76,7 @@ export class TasksService {
     });
 
     const user = await this.prismaService.users.findUnique({
-      where: { id: task.user_id },
+      where: { id: task.recipientId },
     });
 
     const notification = {
