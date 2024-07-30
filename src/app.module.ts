@@ -13,9 +13,14 @@ import { EventsModule } from './events/events.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { DepartamentsModule } from './departaments/departaments.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'client'),
+    }),
     EventEmitterModule.forRoot(), 
     UsersModule, 
     TasksModule, 
@@ -38,3 +43,13 @@ import { DepartamentsModule } from './departaments/departaments.module';
   ],
 })
 export class AppModule {}
+
+/*
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    }
+  ],
+*/

@@ -18,6 +18,11 @@ export class UsersController {
     return this.usersService.findByEmail(email);
   }
 
+  @Get(':id')
+  findById(@Param('id') id: string) {
+    return this.usersService.findById(id);
+  }
+
   @IsPublic()
   @Delete(':id')
   remove(@Param('id') id: string) {

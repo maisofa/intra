@@ -29,13 +29,13 @@ import {
       }
   
       const canActivate = super.canActivate(context);
-  
+ 
       if (typeof canActivate === 'boolean') {
         return canActivate;
       }
   
       const canActivatePromise = canActivate as Promise<boolean>;
-  
+
       return canActivatePromise.catch((error) => {
         if (error instanceof UnauthorizedError) {
           throw new UnauthorizedException(error.message);
