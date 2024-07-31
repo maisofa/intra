@@ -14,7 +14,8 @@ export class UsersService {
         name: registerUserDto.name,
         email: registerUserDto.email,
         password: registerUserDto.password,
-        departament_id: registerUserDto.departament_id
+        departament_id: registerUserDto.departament_id,
+        user_role: registerUserDto.user_role
       }
     });
     return {

@@ -31,14 +31,14 @@ export class TasksService {
     this.eventEmitter.emitAsync(
       TaskCreatedEvent.EVENT_NAME, 
       new TaskCreatedEvent(
-        task.id, task.title, task.priority, task.type, task.startDate, task.endDate
+        task.id, task.title, task.priority, task.type, task.startDate, task.endDate, user.id
       )
     );
 
     return task;
   }
 
-  async requestTaskToUser(requestTaskDto: RequestTaskDto) {
+  async requestTaskToUser(user: UserCookieData, requestTaskDto: RequestTaskDto) {
     const task = await this.prismaService.tasks.create({
       data: {
         title: requestTaskDto.title,
@@ -52,16 +52,12 @@ export class TasksService {
       },
     });
 
-    const taskCreateEvent = new RequestTaskCreatedEvent();
-    taskCreateEvent.title = task.title;
-    taskCreateEvent.priority = task.priority;
-    taskCreateEvent.type = task.type;
-    taskCreateEvent.startDate = task.startDate;
-    taskCreateEvent.endDate = task.endDate;
-    taskCreateEvent.senderId = task.senderId;
-    taskCreateEvent.recipientId = task.recipientId;
-
-    this.eventEmitter.emit('task.requested', taskCreateEvent);
+    this.eventEmitter.emitAsync(
+      RequestTaskCreatedEvent.EVENT_NAME,
+      new RequestTaskCreatedEvent(
+        task.id, task.title, task.priority, task.type, task.startDate, task.endDate, task.recipientId, user.id
+      )
+    )
 
     return task;
   }

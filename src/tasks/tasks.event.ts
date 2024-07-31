@@ -6,6 +6,7 @@ export class TaskCreatedEvent {
         public readonly type: string,
         public readonly startDate: Date,
         public readonly endDate: Date,
+        public readonly userId: string
     ) {}
 
     static EVENT_NAME = 'task.created';
@@ -20,11 +21,24 @@ export class TaskCreatedEvent {
 }
 
 export class RequestTaskCreatedEvent {
-    title: string
-    priority: string
-    type: string
-    startDate: Date
-    endDate: Date
-    senderId: string
-    recipientId: string
+    constructor(
+        public readonly id: string,
+        public readonly title: string,
+        public readonly priority: string,
+        public readonly type: string,
+        public readonly startDate: Date,
+        public readonly endDate: Date,
+        public readonly senderId: string,
+        public readonly recipientId: string,
+    ) {}
+
+    static EVENT_NAME = 'task.requested';
+
+    public getContent(): string {
+        return `Task ${this.title} has been requested`;
+    }
+
+    public getTitle(): string {
+        return `Task Requested`;
+    }
 }

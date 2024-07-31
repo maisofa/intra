@@ -6,6 +6,7 @@ import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { RequestTaskCreatedEvent, TaskCreatedEvent } from 'src/tasks/tasks.event';
 import { NotificationsReadEvent } from './notifications.event';
 import { NewNotification } from './notifications.model';
+import { UserCookieData } from 'src/users/users.model';
 
 @Injectable()
 export class NotificationsService implements OnModuleDestroy, OnModuleInit {
@@ -18,14 +19,13 @@ export class NotificationsService implements OnModuleDestroy, OnModuleInit {
 
   onModuleInit() {
     this.eventEmitter.on('task.created', async (event: TaskCreatedEvent) => {
-      event
       const newNotification: NewNotification = {
         title: event.getTitle(),
         content: event.getContent(),
         isRead: false
       }
 
-      await this.addNotificationToModerators(newNotification);
+      await this.addNotificationToModerators(event.userId, newNotification);
     });
 
     this.eventEmitter.on('task.accepted', async (event: TaskCreatedEvent) => {
@@ -51,14 +51,14 @@ export class NotificationsService implements OnModuleDestroy, OnModuleInit {
     });
 
     this.eventEmitter.on('task.requested', async (event: RequestTaskCreatedEvent) => {
-      const createNotificationDto = new CreateNotificationDto();
-      createNotificationDto.title = event.title;
-      createNotificationDto.content = `A tarefa "${event.title}" foi solicitada.`;
-      createNotificationDto.recipientId = event.recipientId; 
-      createNotificationDto.senderId = event.recipientId; 
-      createNotificationDto.is_read = false;
+      const newNotification: NewNotification = {
+        title: event.getTitle(),
+        content: event.getContent(),
+        isRead: false
+      }
 
-      await this.create(createNotificationDto);
+      await this.addNotificationToModerators(event.senderId, newNotification);
+      await this.addNotificationToUser(event.senderId, newNotification)
     });
   }
 
@@ -91,10 +91,10 @@ export class NotificationsService implements OnModuleDestroy, OnModuleInit {
     });
   }
 
-  async addNotificationToModerators(notification: NewNotification) {
+  async addNotificationToModerators(senderId: string, notification: NewNotification) {
     const moderators = await this.prismaService.users.findMany({
       where: {
-        role: 'MODERATOR'
+        user_role: 'MODERATOR'
       }
     });
 
@@ -103,7 +103,7 @@ export class NotificationsService implements OnModuleDestroy, OnModuleInit {
         title: notification.title,
         content: notification.content,
         recipientId: moderator.id,
-        senderId: moderator.id,
+        senderId: senderId,
         is_read: false
       };
     });
@@ -115,11 +115,11 @@ export class NotificationsService implements OnModuleDestroy, OnModuleInit {
     });
   }
 
-  async addNotificationToUser(notification: CreateNotificationDto) {
+  async addNotificationToUser(recepientId: string, notification: NewNotification) {
     const newNotification = {
       title: notification.title,
       content: notification.content,
-      recipientId: notification.recipientId,
+      recipientId: recepientId,
       senderId: notification.senderId,
       is_read: false
     };

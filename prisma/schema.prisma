@@ -13,6 +13,7 @@ model Users {
   email          String   @unique
   departament_id String
   password       String
+  user_role      UserRole
   createdAt      DateTime @default(now())
 
   permissions           Permissions[]
@@ -122,4 +123,10 @@ enum TaskPriority {
   LOW
   MEDIUM
   HIGH
+}
+
+enum UserRole {
+  USER
+  MODERATOR
+  ADMIN
 }
