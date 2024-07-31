@@ -6,6 +6,7 @@ import { Task } from './entities/task.entity';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { RequestTaskCreatedEvent, TaskCreatedEvent } from './tasks.event';
 import { RequestTaskDto } from './dto/request-task.dto';
+import { UserCookieData } from 'src/users/users.model';
 
 @Injectable()
 export class TasksService {
@@ -14,7 +15,7 @@ export class TasksService {
     private eventEmitter: EventEmitter2,
   ) {}
 
-  async create(createTaskDto: CreateTaskDto): Promise<Task> {
+  async create(user: UserCookieData, createTaskDto: CreateTaskDto): Promise<Task> {
     const task = await this.prismaService.tasks.create({
       data: {
         title: createTaskDto.title,
@@ -23,19 +24,16 @@ export class TasksService {
         type: createTaskDto.type,
         startDate: createTaskDto.startDate,
         endDate: createTaskDto.endDate,
-        senderId: createTaskDto.userId,
+        senderId: user.id,
       },
     });
 
-    const taskCreateEvent = new TaskCreatedEvent();
-    taskCreateEvent.title = task.title;
-    taskCreateEvent.priority = task.priority;
-    taskCreateEvent.type = task.type;
-    taskCreateEvent.startDate = task.startDate;
-    taskCreateEvent.endDate = task.endDate;
-    taskCreateEvent.userId = task.senderId;
-
-    this.eventEmitter.emit('task.created', taskCreateEvent);
+    this.eventEmitter.emitAsync(
+      TaskCreatedEvent.EVENT_NAME, 
+      new TaskCreatedEvent(
+        task.id, task.title, task.priority, task.type, task.startDate, task.endDate
+      )
+    );
 
     return task;
   }

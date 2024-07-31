@@ -71,3 +71,11 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](LICENSE).
+
+## Requisitos
+
+> Tarefas: serão para somente 1 usuário ou para 2 ou mais?
+
+> Notificações: irão conter o id do sender? ou apenas do receiver? 
+
+> Event Modeling

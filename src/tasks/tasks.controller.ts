@@ -1,23 +1,26 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { IsPublic } from 'src/auth/decorators/is-public.decorator';
 import { RequestTaskDto } from './dto/request-task.dto';
+import { AuthRequest } from 'src/auth/models/AuthRequest';
 
 @Controller('tasks')
 export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
-  @IsPublic()
   @Post()
-  create(@Body() createTaskDto: CreateTaskDto) {
-    return this.tasksService.create(createTaskDto);
+  create(@Req() req: AuthRequest, @Body() createTaskDto: CreateTaskDto) {
+    const user = req.user;
+    console.log(user);
+    // return this.tasksService.create(createTaskDto);
   }
 
   @IsPublic()
   @Post('request')
-  requestTaskToUser(@Body() requestTaskDto: RequestTaskDto) {
+  requestTaskToUser(@Req() req: AuthRequest, @Body() requestTaskDto: RequestTaskDto) {
+    const user = req.user;
     return this.tasksService.requestTaskToUser(requestTaskDto);
   }
 

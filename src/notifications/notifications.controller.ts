@@ -24,7 +24,10 @@ export class NotificationsController {
             .filter(notification => !notification.is_read)
             .map(notification => notification.id);
 
-        this.eventEmitter.emitAsync('notification.read', new NotificationsReadEvent(unreadNotifications));
+        this.eventEmitter.emitAsync(
+            'notification.read',
+             new NotificationsReadEvent(unreadNotifications)
+        );
     }
 
     @IsPublic()

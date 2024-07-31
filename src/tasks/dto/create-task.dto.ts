@@ -20,7 +20,4 @@ export class CreateTaskDto {
     @IsString()
     @IsNotEmpty()
     endDate: Date;
-    @IsString()
-    @IsNotEmpty()
-    userId: string;
 }

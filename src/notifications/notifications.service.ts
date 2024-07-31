@@ -5,6 +5,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { RequestTaskCreatedEvent, TaskCreatedEvent } from 'src/tasks/tasks.event';
 import { NotificationsReadEvent } from './notifications.event';
+import { NewNotification } from './notifications.model';
 
 @Injectable()
 export class NotificationsService implements OnModuleDestroy, OnModuleInit {
@@ -17,14 +18,14 @@ export class NotificationsService implements OnModuleDestroy, OnModuleInit {
 
   onModuleInit() {
     this.eventEmitter.on('task.created', async (event: TaskCreatedEvent) => {
-      const createNotificationDto = new CreateNotificationDto();
-      createNotificationDto.title = event.title;
-      createNotificationDto.content = `A tarefa "${event.title}" foi criada.`;
-      createNotificationDto.recipientId = '1';  // Altere conforme necessário
-      createNotificationDto.senderId = '1';  // Ou o ID do usuário que criou a tarefa
-      createNotificationDto.is_read = false;
+      event
+      const newNotification: NewNotification = {
+        title: event.getTitle(),
+        content: event.getContent(),
+        isRead: false
+      }
 
-      await this.create(createNotificationDto);
+      await this.addNotificationToModerators(newNotification);
     });
 
     this.eventEmitter.on('task.accepted', async (event: TaskCreatedEvent) => {
@@ -86,6 +87,52 @@ export class NotificationsService implements OnModuleDestroy, OnModuleInit {
       },
       data: {
         is_read: true
+      }
+    });
+  }
+
+  async addNotificationToModerators(notification: NewNotification) {
+    const moderators = await this.prismaService.users.findMany({
+      where: {
+        role: 'MODERATOR'
+      }
+    });
+
+    const newNotifications = moderators.map(moderator => {
+      return {
+        title: notification.title,
+        content: notification.content,
+        recipientId: moderator.id,
+        senderId: moderator.id,
+        is_read: false
+      };
+    });
+
+    // verify how to implement sender and recipient id
+
+    await this.prismaService.notifications.createMany({
+      data: newNotifications
+    });
+  }
+
+  async addNotificationToUser(notification: CreateNotificationDto) {
+    const newNotification = {
+      title: notification.title,
+      content: notification.content,
+      recipientId: notification.recipientId,
+      senderId: notification.senderId,
+      is_read: false
+    };
+
+    await this.prismaService.notifications.create({
+      data: newNotification
+    });
+  }
+
+  async getNotificationsForUser(userId: string) {
+    return this.prismaService.notifications.findMany({
+      where: {
+        recipientId: userId 
       }
     });
   }
