@@ -22,8 +22,5 @@ export class RequestTaskDto {
     endDate: Date;
     @IsString()
     @IsNotEmpty()
-    senderId: string;
-    @IsString()
-    @IsNotEmpty()
     recipientId: string;
 }

@@ -51,14 +51,17 @@ export class NotificationsService implements OnModuleDestroy, OnModuleInit {
     });
 
     this.eventEmitter.on('task.requested', async (event: RequestTaskCreatedEvent) => {
+      console.log("event => ", event);
       const newNotification: NewNotification = {
         title: event.getTitle(),
         content: event.getContent(),
         isRead: false
       }
 
+      console.log("newNotification => ", newNotification);
+
       await this.addNotificationToModerators(event.senderId, newNotification);
-      await this.addNotificationToUser(event.senderId, newNotification)
+      await this.addNotificationToUser(event.senderId, event.recipientId, newNotification)
     });
   }
 
@@ -115,12 +118,12 @@ export class NotificationsService implements OnModuleDestroy, OnModuleInit {
     });
   }
 
-  async addNotificationToUser(recepientId: string, notification: NewNotification) {
+  async addNotificationToUser(senderId: string, recipientId: string, notification: NewNotification) {
     const newNotification = {
       title: notification.title,
       content: notification.content,
-      recipientId: recepientId,
-      senderId: notification.senderId,
+      recipientId: recipientId,
+      senderId: senderId,
       is_read: false
     };
 

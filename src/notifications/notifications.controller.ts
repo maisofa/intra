@@ -13,11 +13,10 @@ export class NotificationsController {
     constructor(
         private readonly notificationsService: NotificationsService,
         private readonly eventEmitter: EventEmitter2
-    ) {}
+    ) { }
 
-    @IsPublic()
     @Get()
-    async getNotifications() {  
+    async getNotifications() {
         const notifications = this.notificationsService.findAll();
 
         const unreadNotifications = (await notifications)
@@ -26,18 +25,18 @@ export class NotificationsController {
 
         this.eventEmitter.emitAsync(
             'notification.read',
-             new NotificationsReadEvent(unreadNotifications)
+            new NotificationsReadEvent(unreadNotifications)
         );
     }
 
-    @IsPublic()
     @Sse('/count')
     notificationCount(@Req() req: AuthRequest): Observable<MessageEvent<any>> {
+        console.log('User => ', req.user);
         const count = concat(
-            from(this.notificationsService.getUnreadNotificationsCount("f6649596-4ea0-41c6-8d67-2eca4e4ffff4"))
-            .pipe(
-                map(count => ({ data: { unreadCount: +count } }))
-            )
+            from(this.notificationsService.getUnreadNotificationsCount(req.user.id))
+                .pipe(
+                    map(count => ({ data: { unreadCount: +count } }))
+                )
         ) as Observable<MessageEvent<any>>;
 
         return count;

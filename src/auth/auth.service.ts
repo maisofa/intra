@@ -33,6 +33,8 @@ export class AuthService {
       name: user.name,
     };
 
+    console.log(payload)
+
     return {
       access_token: this.jwtService.sign(payload)
     };

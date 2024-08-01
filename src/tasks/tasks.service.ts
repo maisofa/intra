@@ -47,7 +47,7 @@ export class TasksService {
         type: requestTaskDto.type,
         startDate: requestTaskDto.startDate,
         endDate: requestTaskDto.endDate,
-        senderId: requestTaskDto.senderId,
+        senderId: user.id,
         recipientId: requestTaskDto.recipientId,
       },
     });
@@ -55,7 +55,7 @@ export class TasksService {
     this.eventEmitter.emitAsync(
       RequestTaskCreatedEvent.EVENT_NAME,
       new RequestTaskCreatedEvent(
-        task.id, task.title, task.priority, task.type, task.startDate, task.endDate, task.recipientId, user.id
+        task.id, task.title, task.priority, task.type, task.startDate, task.endDate, user.id, task.recipientId
       )
     )
 

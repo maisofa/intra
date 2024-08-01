@@ -17,11 +17,11 @@ export class TasksController {
     // return this.tasksService.create(createTaskDto);
   }
 
-  @IsPublic()
   @Post('request')
   requestTaskToUser(@Req() req: AuthRequest, @Body() requestTaskDto: RequestTaskDto) {
     const user = req.user;
-    return this.tasksService.requestTaskToUser(requestTaskDto);
+    console.log("User => ", user.name)
+    return this.tasksService.requestTaskToUser(user, requestTaskDto);
   }
 
   @Get()

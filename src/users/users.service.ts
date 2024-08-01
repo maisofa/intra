@@ -34,7 +34,8 @@ export class UsersService {
         id
       },
       include: {
-        UserTasks: true
+        receiverTasks: true,
+        senderTasks: true
       }
     })
 

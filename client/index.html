@@ -1,10 +1,61 @@
-<script text="text/javascript">
-    const eventSource = new EventSource('notifications/count');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications</title>
+</head>
+<body>
+    <form id="login-form">
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required>
+        <button type="submit">Login</button>
+    </form>
 
-    eventSource.onmessage = ({ data }) => {
-        const message = document.createElement('li');
-        message.textContent = data;
+    <ul id="messages"></ul>
 
-        document.body.appendChild(message);
-    }
-</script>   
+    <script type="text/javascript">
+        document.getElementById('login-form').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            const response = await fetch('/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email, password })
+            });
+
+            if (response.ok) {
+                const { access_token } = await response.json();
+                localStorage.setItem('authToken', access_token);
+                initializeSSE(access_token);
+            } else {
+                alert('Login failed');
+            }
+        });
+
+        function initializeSSE(token) {
+            const eventSource = new EventSource(`/notifications/count`, { withCredentials: true });
+
+            eventSource.onmessage = ({ data }) => {
+                const message = document.createElement('li');
+                message.textContent = data;
+                document.getElementById('messages').appendChild(message);
+            };
+
+            const button = document.createElement('button');
+            button.textContent = 'Subscribe';
+            button.onclick = () => {
+                eventSource.close();
+                initializeSSE(token); // Reinitialize SSE to subscribe again
+            };
+            document.body.appendChild(button);
+        }
+    </script>   
+</body>
+</html>
