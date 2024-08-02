@@ -5,8 +5,9 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { RequestTaskCreatedEvent, TaskCreatedEvent } from 'src/tasks/tasks.event';
 import { NotificationsReadEvent } from './notifications.event';
-import { NewNotification } from './notifications.model';
+import { NewNotification, Notification } from './notifications.model';
 import { UserCookieData } from 'src/users/users.model';
+import { Notifications } from '@prisma/client';
 
 @Injectable()
 export class NotificationsService implements OnModuleDestroy, OnModuleInit {
@@ -198,8 +199,12 @@ export class NotificationsService implements OnModuleDestroy, OnModuleInit {
     return notification;
   }
 
-  findAll() {
-    return this.prismaService.notifications.findMany();
+  findAll(user: UserCookieData): Promise<Notifications[]> {
+    return this.prismaService.notifications.findMany({
+      where: {
+        recipientId: user.id
+      }
+    });
   }
 
   findOne(id: number) {

@@ -25,11 +25,6 @@ export class EventsGateway {
     return notification;
   }
 
-  @SubscribeMessage('findAllNotifications')
-  findAll() {
-    return this.notificationsService.findAll();
-  }
-
   @SubscribeMessage('join')
   joinRoom(@MessageBody('departament') departament: string, @ConnectedSocket() client: Socket) {
     return this.notificationsService.identify(departament, client.id);
