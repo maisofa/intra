@@ -79,3 +79,5 @@ Nest is [MIT licensed](LICENSE).
 > Notificações: irão conter o id do sender? ou apenas do receiver? 
 
 > Event Modeling
+
+> when accept/reject: new notification or edit

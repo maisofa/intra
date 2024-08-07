@@ -31,7 +31,13 @@ export class TasksService {
     this.eventEmitter.emitAsync(
       TaskCreatedEvent.EVENT_NAME, 
       new TaskCreatedEvent(
-        task.id, task.title, task.priority, task.type, task.startDate, task.endDate, user.id
+        task.id, 
+        task.title, 
+        task.priority, 
+        task.type, 
+        task.startDate, 
+        task.endDate, 
+        user.id
       )
     );
 
@@ -55,7 +61,14 @@ export class TasksService {
     this.eventEmitter.emitAsync(
       RequestTaskCreatedEvent.EVENT_NAME,
       new RequestTaskCreatedEvent(
-        task.id, task.title, task.priority, task.type, task.startDate, task.endDate, user.id, task.recipientId
+        task.id, 
+        task.title, 
+        task.priority, 
+        task.type, 
+        task.startDate, 
+        task.endDate, 
+        user.id, 
+        task.recipientId
       )
     )
 
@@ -63,7 +76,6 @@ export class TasksService {
   }
 
   async acceptTask(taskId: string) {
-
     const task = await this.prismaService.tasks.update({
       where: { id: taskId },
       data: { status: 'ACCEPTED' },
@@ -78,16 +90,27 @@ export class TasksService {
       userId: user.id,
     };
 
-    this.eventEmitter.emit('notification.accpted', notification);
+    this.eventEmitter.emit('task.accepted', notification);
 
     return task;
   }
 
-  async denyTask(taskId: string) {
+  async rejectTask(taskId: string) {
     const task = await this.prismaService.tasks.update({
       where: { id: taskId },
       data: { status: 'REJEITED' },
     });
+
+    const user = await this.prismaService.users.findUnique({
+      where: { id: task.recipientId },
+    });
+
+    const notification = {
+      message: `Your task "${task.title}" has been accepted.`,
+      userId: user.id,
+    };
+
+    this.eventEmitter.emit('task.rejected', notification);
   
     return task;
   }

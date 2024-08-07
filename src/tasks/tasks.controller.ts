@@ -24,6 +24,16 @@ export class TasksController {
     return this.tasksService.requestTaskToUser(user, requestTaskDto);
   }
 
+  @Patch('accept/:id')
+  acceptTask(@Param('id') id: string) {
+    return this.tasksService.acceptTask(id);
+  }
+
+  @Patch('reject/:id')
+  rejectTask(@Param('id') id: string) {
+    return this.tasksService.rejectTask(id);
+  }
+
   @Get()
   findAll() {
     return this.tasksService.findAll();

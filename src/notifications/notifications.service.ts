@@ -7,6 +7,7 @@ import { RequestTaskCreatedEvent, TaskCreatedEvent } from 'src/tasks/tasks.event
 import { NotificationsReadEvent } from './notifications.event';
 import { NewNotification } from './notifications.model';
 import { UserCookieData } from 'src/users/users.model';
+import { AcceptTaskEvent } from 'src/events/events.events';
 
 @Injectable()
 export class NotificationsService implements OnModuleDestroy, OnModuleInit {
@@ -28,10 +29,11 @@ export class NotificationsService implements OnModuleDestroy, OnModuleInit {
       await this.addNotificationToModerators(event.userId, newNotification);
     });
 
-    this.eventEmitter.on('task.accepted', async (event: TaskCreatedEvent) => {
+    this.eventEmitter.on(AcceptTaskEvent.EVENT_NAME, async (event: AcceptTaskEvent) => {
+      console.log("event => ", event);
       const createNotificationDto = new CreateNotificationDto();
-      createNotificationDto.title = event.title;
-      createNotificationDto.content = `A tarefa "${event.title}" foi aceita.`;
+      //createNotificationDto.title = event.title;
+      //createNotificationDto.content = `A tarefa "${event.title}" foi aceita.`;
       createNotificationDto.recipientId = '1';  // Altere conforme necessário
       createNotificationDto.senderId = '1';  // Ou o ID do usuário que aceitou a tarefa
       createNotificationDto.is_read = false;
@@ -57,8 +59,6 @@ export class NotificationsService implements OnModuleDestroy, OnModuleInit {
         content: event.getContent(),
         isRead: false
       }
-
-      console.log("newNotification => ", newNotification);
 
       await this.addNotificationToModerators(event.senderId, newNotification);
       await this.addNotificationToUser(event.senderId, event.recipientId, newNotification)
