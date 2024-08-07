@@ -1,4 +1,4 @@
-import { Controller, Get, Req, Sse } from '@nestjs/common';
+import { Controller, Get, Req, Res, Sse } from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
 import { concat, Observable } from 'rxjs';
 import { from } from 'rxjs';
@@ -7,6 +7,7 @@ import { map } from 'rxjs/operators';
 import { IsPublic } from 'src/auth/decorators/is-public.decorator';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { NotificationsReadEvent } from './notifications.event';
+import { Response } from 'express';
 
 @Controller('notifications')
 export class NotificationsController {
@@ -16,8 +17,8 @@ export class NotificationsController {
     ) { }
 
     @Get()
-    async getNotifications() {
-        const notifications = this.notificationsService.findAll();
+    async getNotifications(@Req() req: AuthRequest) {
+        const notifications = this.notificationsService.findAll(req.user);
 
         const unreadNotifications = (await notifications)
             .filter(notification => !notification.is_read)
@@ -31,6 +32,7 @@ export class NotificationsController {
 
     @Sse('/count')
     notificationCount(@Req() req: AuthRequest): Observable<MessageEvent<any>> {
+        console.log('User => ', req.user);
         const count = concat(
             from(this.notificationsService.getUnreadNotificationsCount(req.user.id))
                 .pipe(
