@@ -23,7 +23,6 @@ export class DepartamentsController {
   @IsPublic()
   @Get()
   findAll() {
-    console.log('findAll');
     return this.departamentsService.findAll();
   }
 

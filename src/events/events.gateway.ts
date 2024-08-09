@@ -3,13 +3,13 @@ import { WebSocketGateway, SubscribeMessage, MessageBody, WebSocketServer, Conne
 import { Server, Socket } from 'socket.io';
 import { CreateNotificationDto } from 'src/notifications/dto/create-notification.dto';
 import { NotificationsService } from 'src/notifications/notifications.service';
-import { AcceptTask } from './review.model';
+import { AcceptTask } from './events.model';
 import { TasksService } from 'src/tasks/tasks.service';
 import { AcceptTaskEvent } from './events.events';
 import { UserCookieData } from 'src/users/users.model';
 import { EventsService } from './events.service';
 
-@WebSocketGateway({cors: true})
+@WebSocketGateway({ cors: true })
 export class EventsGateway {
   @WebSocketServer()
   server: Server
@@ -25,9 +25,9 @@ export class EventsGateway {
 
   async handleConnection(socket: Socket) {
     try {
-      const user = this.eventsService.getUserFromSocket(socket);
+      //const user = this.eventsService.getUserFromSocket(socket);
 
-      this.addUserToRoom(socket, user);
+      //this.addUserToRoom(socket, user);
     } catch (error) {
       console.error(error.message);
 
@@ -45,12 +45,11 @@ export class EventsGateway {
   async handleAcceptTaskEvent(socket: Socket, payload: AcceptTask): Promise<WsResponse> {
     try {
       const acceptTask = await this.tasksService.acceptTask(payload.taskId);
-
       socket.emit('accepted.task', { acceptTask });
 
       this.eventEmitter.emitAsync(
         AcceptTaskEvent.EVENT_NAME,
-        new AcceptTaskEvent(acceptTask.id),
+        new AcceptTaskEvent(acceptTask.id, payload.senderId, payload.recipientId),
       );
 
       return {

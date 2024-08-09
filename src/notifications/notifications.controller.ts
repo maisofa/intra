@@ -32,7 +32,6 @@ export class NotificationsController {
 
     @Sse('/count')
     notificationCount(@Req() req: AuthRequest): Observable<MessageEvent<any>> {
-        console.log('User => ', req.user);
         const count = concat(
             from(this.notificationsService.getUnreadNotificationsCount(req.user.id))
                 .pipe(

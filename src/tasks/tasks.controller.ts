@@ -13,14 +13,13 @@ export class TasksController {
   @Post()
   create(@Req() req: AuthRequest, @Body() createTaskDto: CreateTaskDto) {
     const user = req.user;
-    console.log(user);
     // return this.tasksService.create(createTaskDto);
   }
 
   @Post('request')
   requestTaskToUser(@Req() req: AuthRequest, @Body() requestTaskDto: RequestTaskDto) {
     const user = req.user;
-    console.log("User => ", user.name)
+
     return this.tasksService.requestTaskToUser(user, requestTaskDto);
   }
 

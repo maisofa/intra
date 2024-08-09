@@ -5,9 +5,9 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { RequestTaskCreatedEvent, TaskCreatedEvent } from 'src/tasks/tasks.event';
 import { NotificationsReadEvent } from './notifications.event';
-import { NewNotification, Notification } from './notifications.model';
+import { NewNotification } from './notifications.model';
 import { UserCookieData } from 'src/users/users.model';
-import { AcceptTaskEvent } from 'src/events/events.events';
+import { AcceptTaskEvent, RejectTaskEvent } from 'src/events/events.events';
 import { Notifications } from '@prisma/client';
 
 @Injectable()
@@ -20,7 +20,7 @@ export class NotificationsService implements OnModuleDestroy, OnModuleInit {
   clientToUser = {};
 
   onModuleInit() {
-    this.eventEmitter.on('task.created', async (event: TaskCreatedEvent) => {
+    this.eventEmitter.on(TaskCreatedEvent.EVENT_NAME, async (event: TaskCreatedEvent) => {
       const newNotification: NewNotification = {
         title: event.getTitle(),
         content: event.getContent(),
@@ -31,30 +31,28 @@ export class NotificationsService implements OnModuleDestroy, OnModuleInit {
     });
 
     this.eventEmitter.on(AcceptTaskEvent.EVENT_NAME, async (event: AcceptTaskEvent) => {
-      console.log("event => ", event);
-      const createNotificationDto = new CreateNotificationDto();
-      //createNotificationDto.title = event.title;
-      //createNotificationDto.content = `A tarefa "${event.title}" foi aceita.`;
-      createNotificationDto.recipientId = '1';  // Altere conforme necessário
-      createNotificationDto.senderId = '1';  // Ou o ID do usuário que aceitou a tarefa
-      createNotificationDto.is_read = false;
+      const newNotification: NewNotification = {
+        title: event.getTitle(),
+        content: event.getContent(),
+        isRead: false
+      }
 
-      await this.create(createNotificationDto);
+      await this.addNotificationToUser(event.senderId, event.recipientId, newNotification);
+      await this.addNotificationToModerators(event.senderId, newNotification);
     });
 
-    this.eventEmitter.on('task.rejected', async (event: TaskCreatedEvent) => {
-      const createNotificationDto = new CreateNotificationDto();
-      createNotificationDto.title = event.title;
-      createNotificationDto.content = `A tarefa "${event.title}" foi rejeitada.`;
-      createNotificationDto.recipientId = '1';  // Altere conforme necessário
-      createNotificationDto.senderId = '1';  // Ou o ID do usuário que rejeitou a tarefa
-      createNotificationDto.is_read = false;
+    this.eventEmitter.on(RejectTaskEvent.EVENT_NAME, async (event: RejectTaskEvent) => {
+      const newNotification: NewNotification = {
+        title: event.getTitle(),
+        content: event.getContent(),
+        isRead: false
+      }
 
-      await this.create(createNotificationDto);
+      await this.addNotificationToUser(event.senderId, event.recipientId, newNotification);
+      await this.addNotificationToModerators(event.senderId, newNotification);
     });
 
     this.eventEmitter.on('task.requested', async (event: RequestTaskCreatedEvent) => {
-      console.log("event => ", event);
       const newNotification: NewNotification = {
         title: event.getTitle(),
         content: event.getContent(),
@@ -112,8 +110,6 @@ export class NotificationsService implements OnModuleDestroy, OnModuleInit {
       };
     });
 
-    // verify how to implement sender and recipient id
-
     await this.prismaService.notifications.createMany({
       data: newNotifications
     });
@@ -124,13 +120,13 @@ export class NotificationsService implements OnModuleDestroy, OnModuleInit {
       title: notification.title,
       content: notification.content,
       recipientId: recipientId,
-      senderId: senderId,
+      senderId,
       is_read: false
     };
 
     await this.prismaService.notifications.create({
       data: newNotification
-    });
+    })
   }
 
   async getNotificationsForUser(userId: string) {
@@ -140,36 +136,6 @@ export class NotificationsService implements OnModuleDestroy, OnModuleInit {
       }
     });
   }
-
-  /*async createTaskForUser(createTaskDto: CreateTaskDto, recipientId: string) {
-    const task = await this.prismaService.tasks.create({
-      data: {
-        title: createTaskDto.title,
-        description: createTaskDto.description,
-        recipientId: recipientId,
-        senderId: createTaskDto.senderId,
-        is_completed: false,
-      },
-    });
-
-    this.eventEmitter.emit('task.created', task);
-
-    return task;
-  }
-    const task = await this.prismaService.tasks.create({
-      data: {
-        title: createTaskDto.title,
-        description: createTaskDto.description,
-        recipientId: recipientId,
-        senderId: createTaskDto.senderId,
-        is_completed: false,
-      },
-    });
-
-    this.eventEmitter.emit('task.created', task);
-
-    return task;
-  }*/
 
   onModuleDestroy() {
     this.eventEmitter.removeAllListeners(TaskCreatedEvent.name);
