@@ -14,7 +14,8 @@ export class EventsGateway {
   @WebSocketServer()
   server: Server
 
-  userSockets: Map<string, UserCookieData> = new Map();
+  // userSockets: Map<string, UserCookieData> = new Map();
+  private users = {}
 
   constructor(
     private readonly notificationsService: NotificationsService,
@@ -25,9 +26,8 @@ export class EventsGateway {
 
   async handleConnection(socket: Socket) {
     try {
-      //const user = this.eventsService.getUserFromSocket(socket);
-
-      //this.addUserToRoom(socket, user);
+      const { id } = socket.handshake.query;
+      this.users[socket.id] = id;
     } catch (error) {
       console.error(error.message);
 
@@ -37,15 +37,20 @@ export class EventsGateway {
   }
 
   private addUserToRoom(socket: Socket, user: any) {
-    this.userSockets.set(user.id, user);
-    socket.join(user.id);
+    //console.log('BEFORE ERROR')
+    //this.userSockets.set(user.id, user);
+    //socket.join(user.id);
   }
 
   @SubscribeMessage('accepted.task')
   async handleAcceptTaskEvent(socket: Socket, payload: AcceptTask): Promise<WsResponse> {
+    const { recipientId } = payload;
+    const id = this.getSocketIdByUserId(recipientId);
+
     try {
       const acceptTask = await this.tasksService.acceptTask(payload.taskId);
-      socket.emit('accepted.task', { acceptTask });
+      
+      socket.to(id).emit('accepted.task', { acceptTask });
 
       this.eventEmitter.emitAsync(
         AcceptTaskEvent.EVENT_NAME,
@@ -61,6 +66,15 @@ export class EventsGateway {
     } catch (error) {
       console.error(error);
     }
+  }
+
+  getSocketIdByUserId(recipientId: string): string | undefined {
+    for (const [socketId, userId] of Object.entries(this.users)) {
+      if (userId === recipientId) {
+        return socketId;
+      }
+    }
+    return undefined;
   }
 
   @SubscribeMessage('createNotification')
