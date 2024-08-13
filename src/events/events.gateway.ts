@@ -8,13 +8,14 @@ import { TasksService } from 'src/tasks/tasks.service';
 import { AcceptTaskEvent } from './events.events';
 import { UserCookieData } from 'src/users/users.model';
 import { EventsService } from './events.service';
+import { get } from 'http';
 
 @WebSocketGateway({ cors: true })
 export class EventsGateway {
   @WebSocketServer()
   server: Server
 
-  // userSockets: Map<string, UserCookieData> = new Map();
+  userSockets: Map<string, UserCookieData> = new Map();
   private users = {}
 
   constructor(
@@ -26,8 +27,10 @@ export class EventsGateway {
 
   async handleConnection(socket: Socket) {
     try {
-      const { id } = socket.handshake.query;
-      this.users[socket.id] = id;
+      const user = await this.eventsService.getUser(socket);
+      this.addUserToRoom(socket, user);
+      //const { id } = socket.handshake.query;
+      //this.users[socket.id] = id;
     } catch (error) {
       console.error(error.message);
 
@@ -37,20 +40,37 @@ export class EventsGateway {
   }
 
   private addUserToRoom(socket: Socket, user: any) {
+    this.userSockets.set(user.id, user);
+    const roomIdentifier = this.getRoomIdentifier(socket);
+    socket.join(roomIdentifier);
     //console.log('BEFORE ERROR')
     //this.userSockets.set(user.id, user);
     //socket.join(user.id);
   }
 
+  private getRoomIdentifier(socket: Socket) {
+    const taskId = this.getTaskIdFromSocket(socket);
+    return `task:${taskId}`;
+  }
+
+  private getTaskIdFromSocket(socket: Socket) {
+    const { taskId } = socket.handshake.query;
+    return taskId;
+  }
+
   @SubscribeMessage('accepted.task')
   async handleAcceptTaskEvent(socket: Socket, payload: AcceptTask): Promise<WsResponse> {
-    const { recipientId } = payload;
-    const id = this.getSocketIdByUserId(recipientId);
+    //const { recipientId } = payload;
+    //const id = this.getSocketIdByUserId(recipientId);
+    const user = this.userSockets.get(socket.id);
+    const taskId = this.getTaskIdFromSocket(socket);
 
     try {
       const acceptTask = await this.tasksService.acceptTask(payload.taskId);
       
-      socket.to(id).emit('accepted.task', { acceptTask });
+      const roomIdentifier = this.getRoomIdentifier(socket);
+      socket.to(roomIdentifier).emit('accepted.task', { acceptTask });
+      // socket.to(id).emit('accepted.task', { acceptTask });
 
       this.eventEmitter.emitAsync(
         AcceptTaskEvent.EVENT_NAME,

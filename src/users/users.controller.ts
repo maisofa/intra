@@ -18,6 +18,7 @@ export class UsersController {
     return this.usersService.findByEmail(email);
   }
 
+  @IsPublic()
   @Get(':id')
   findById(@Param('id') id: string) {
     return this.usersService.findById(id);

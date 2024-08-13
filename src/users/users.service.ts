@@ -33,11 +33,7 @@ export class UsersService {
       where: {
         id
       },
-      include: {
-        receiverTasks: true,
-        senderTasks: true
-      }
-    })
+    });
 
     return user;
   }
