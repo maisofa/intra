@@ -126,7 +126,7 @@ export class NotificationsService implements OnModuleDestroy, OnModuleInit {
 
     await this.prismaService.notifications.create({
       data: newNotification
-    })
+    });
   }
 
   async getNotificationsForUser(userId: string) {
@@ -169,6 +169,13 @@ export class NotificationsService implements OnModuleDestroy, OnModuleInit {
     return this.prismaService.notifications.findMany({
       where: {
         recipientId: user.id
+      },
+      include: {
+        sender: {
+          select: {
+            name: true
+          }
+        }
       }
     });
   }

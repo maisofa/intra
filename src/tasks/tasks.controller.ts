@@ -34,8 +34,9 @@ export class TasksController {
   }
 
   @Get()
-  findAll() {
-    return this.tasksService.findAll();
+  async findAll(@Req() req: AuthRequest) {
+    const tasks = await this.tasksService.findAll(req.user.id);
+    return tasks;
   }
 
   @Get(':id')

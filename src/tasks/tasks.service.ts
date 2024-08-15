@@ -115,8 +115,16 @@ export class TasksService {
     return task;
   }
  
-  async findAll(): Promise<Task[]> {
-    return await this.prismaService.tasks.findMany();
+  async findAll(userId: string): Promise<Task[]> {
+    return await this.prismaService.tasks.findMany({
+      where: {
+        OR: [
+          { senderId: userId },
+          { recipientId: userId },
+        ],
+      },
+    });
+    ;
   }
 
   findOne(id: number) {

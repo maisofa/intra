@@ -28,6 +28,8 @@ export class NotificationsController {
             'notification.read',
             new NotificationsReadEvent(unreadNotifications)
         );
+
+        return notifications;
     }
 
     @Sse('/count')
